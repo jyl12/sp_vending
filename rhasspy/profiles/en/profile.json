@@ -1,0 +1,36 @@
+{
+    "dialogue": {
+        "system": "rhasspy"
+    },
+    "intent": {
+        "system": "fsticuffs"
+    },
+    "microphone": {
+        "arecord": {
+            "device": "default:CARD=Microphone"
+        },
+        "pyaudio": {
+            "device": "1"
+        },
+        "system": "arecord"
+    },
+    "mqtt": {
+        "enabled": "true",
+        "host": "mosquitto"
+    },
+    "sounds": {
+        "system": "aplay"
+    },
+    "speech_to_text": {
+        "system": "kaldi"
+    },
+    "text_to_speech": {
+        "system": "nanotts"
+    },
+    "wake": {
+        "porcupine": {
+            "keyword_path": "computer_raspberry-pi.ppn"
+        },
+        "system": "porcupine"
+    }
+}

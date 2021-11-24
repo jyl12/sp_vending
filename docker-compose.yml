@@ -1,0 +1,24 @@
+version: "3"
+services:
+  mosquitto:
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+  rhasspy:
+    image: rhasspy/rhasspy
+    command: --user-profiles /profiles --profile en
+    ports:
+      - "12101:12101"
+    restart: unless-stopped
+    volumes:
+      - ./rhasspy/profiles:/profiles
+    devices:
+      - /dev/snd:/dev/snd
+  rhasspy-python:
+    build: rhasspy-python
+    environment:
+      - MQTT_BROKER=mosquitto
+      - KIOSK_API=https://bfcd4d26-ec62-4d24-ac89-c8ea1b048bb9.mock.pstmn.io

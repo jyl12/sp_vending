@@ -1,0 +1,9 @@
+FROM python
+
+RUN pip install paho-mqtt
+RUN pip install requests
+RUN pip install zmq
+
+WORKDIR /app
+COPY . .
+ENTRYPOINT ["python", "simple-skill.py"]
