@@ -53,11 +53,11 @@ class StateModel:
                 if json_msg == "get":
 #                     print('gett')
                     resp = self.get(self.api_call)
-#                     print(resp.json())
+                    print(resp.json())
                     self.pubsocket2.send_multipart([zmq_config_return['inbound_topic'].encode(), json.dumps(resp.json()).encode()])
                 elif json_msg == 'vend':
 #                     print('vend')
-                    resp = self.get(self.api_call)
+                    resp = self.post(self.api_call)
 #                     print(resp.json())
                     self.pubsocket2.send_multipart([zmq_config_return['inbound_topic'].encode(), json.dumps(resp.json()).encode()])
             except Exception as e:
@@ -70,6 +70,9 @@ class StateModel:
     def get(self, endpoint):
         print("get request")
         return requests.get(_url(endpoint))
+    def post(self, endpoint):
+        print("post request")
+        return requests.post(_url(endpoint))
 #     def post_mode(self): #notify withdraw,restock, etc
 #         print("mode")
 #         pass
@@ -79,10 +82,6 @@ class StateModel:
 #     def post_item_quantity(self):
 #         print("item quantity") #notify item and quantity
 #         pass
-#     def order_complete(self):
-#         return requests.post(_url('/ordercomplete'), json = {'complete': True})
-#     def database(self, msg):
-#         print("databse access")
 
 def _url(path):
     return base_url + path

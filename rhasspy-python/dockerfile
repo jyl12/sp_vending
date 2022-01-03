@@ -1,9 +1,13 @@
-FROM python
+FROM arm32v7/python:3.6-buster
+#FROM python
 
 RUN pip install paho-mqtt
 RUN pip install requests
 RUN pip install zmq
+RUN pip install rpi.gpio
+RUN pip install gpiozero
 
+ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 COPY . .
-ENTRYPOINT ["python", "simple-skill.py"]
+ENTRYPOINT ["python","simple-skill.py"]

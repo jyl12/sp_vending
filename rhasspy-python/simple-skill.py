@@ -13,15 +13,23 @@ import zmq
 import time
 import random
 import querymodel
+# os.environ['GPIOZERO_PIN_FACTORY'] = os.environ.get('GPIOZERO_PIN_FACTORY', 'mock')
+from gpiozero import LED
+from time import sleep
+led1=LED(21) #gpio21, voice listening indicator
+led2=LED(26) #gpio26, voice listening indicator duplicate
+led2.off()
+led1.off()
 
 CONFIG_MENU = "menu.json"
 CONFIG_ORDER = "orders.csv"
 CURRENT_ORDER_ID = 1
 CURRENT_CUSTOMER_ID = 1
 USER_FILE = "user.json"
-HTTP_COMM = 1
+HTTP_COMM = 1 # enable http communication
 LIKELIHOOD = 0.75
-base_url = "http://192.168.0.2:8000"
+DICT_ITEMMAP = 1 # enable item mapping from speech to item name
+DICT_ITEM={'face mask':['fm1'], 'drill':['drill'], 'sapphire nozzle':['sp']}
 
 MQTT_BROKER = os.environ['MQTT_BROKER'] or "localhost"
 print("MQTT Broker: ", MQTT_BROKER)
@@ -57,40 +65,6 @@ def result_collector():
         print("ERROR1")
         print(e)
     return json_msg
-
-def http_callback(method):
-    print("http callback")
-    if method == get_state:
-        print("get state")
-        path = base_url + "/state"
-        payload = {}
-        headers= {'Content-type': 'application/json'}
-        response = requests.request("GET", path, headers=headers, data = payload)
-        print(response.text.encode('utf8'))
-    elif method == post_operation:
-        print("post-operation")
-        path = "{}/operation".format(base_url);
-        payload = "{\r\n    \"operation\":\"withdraw\"\r\n}"
-        headers= {'Content-type': 'application/json'}
-        response = requests.request("POST", path, headers=headers, data = payload)
-        print(response.text.encode('utf8'))
-    elif method == post_item:
-        print("post item")
-        path = "{}/item".format(base_url);
-        payload = "{\r\n    \"item\": \"pens\"\r\n}"
-        headers= {'Content-type': 'application/json'}
-        response = requests.request("POST", path, headers=headers, data = payload)
-        print(response.text.encode('utf8'))
-    elif method == post_quantity:
-        print("post quantity")
-        path = "{}/quantity".format(base_url);
-        payload = "{\r\n    \"quantity\":\"10\"\r\n}"
-        headers= {'Content-type': 'application/json'}
-        response = requests.request("POST", path, headers=headers, data = payload)
-        print(response.text.encode('utf8'))
-    else:
-        pass
-    return response
 
 class order (object):
     def __init__(self,userid,orderid_):
@@ -252,6 +226,11 @@ class order (object):
                 enum = list(map(lambda x: str(x), intent_message["slots"][x]["value"].values()))
                 enums.append(enum[1])
         dialogue = ""
+        if DICT_ITEMMAP == 1:  # map the speech item to the item name in vending
+            print(items)
+            items = items[0].lower()
+            items = DICT_ITEM[items]
+            print(items)
         try:
             if len(items) == len(enums):
                 if HTTP_COMM == 0:
@@ -482,7 +461,7 @@ class order (object):
                 response = response[1:]
         dialogue = ""
         if self.state == 0:
-            if "no" in response:
+            if "yes" in response:
                 self.state = 17 #original state is 6
                 if self.order == {}:
                     self.state = 8
@@ -580,7 +559,7 @@ class order (object):
         #print(json.dumps(intent_message,indent=4))
         print("func::statespace")
         if self.state == 0:
-            self.lastDialogue += " Edit or continue?"
+            self.lastDialogue += " Is this correct?"
             print (self.lastDialogue)
             kiosk.mqtt.publish("hermes/dialogueManager/continueSession", json.dumps({"sessionId": intent_message["sessionId"], "text": self.lastDialogue}))
         elif self.state == 1:
@@ -599,7 +578,9 @@ class order (object):
         elif self.state == 8:
             self.lastDialogue += ""
             kiosk.mqtt.publish("hermes/dialogueManager/startSession", json.dumps({"init":{"type": "notification", "text": self.lastDialogue}, "siteId": intent_message["siteId"]}))
-            kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+#             kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+            led1.off()
+            led2.off()
         elif self.state == 9:
             self.lastDialogue = "Order number " + str(self.orderID) + " please collect your order."
             kiosk.mqtt.publish("hermes/dialogueManager/startSession", json.dumps({"init":{"type": "notification", "text": self.lastDialogue}, "siteId": intent_message["siteId"]}))
@@ -639,7 +620,9 @@ class order (object):
 #                 pass
             kiosk.mqtt.publish("hermes/dialogueManager/startSession", json.dumps({"init":{"type": "notification", "text": self.lastDialogue}, "siteId": intent_message["siteId"]}))
             self.orderCompleted()
-            kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+#             kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+            led1.off()
+            led2.off()
             print("----------")
         elif self.state == 20:  #waiting state
             self.lastDialogue = " "
@@ -698,7 +681,12 @@ class kiosk(object):
         self.attempt = 0 #for likelihood retry
         self.likelihood = 0 #for likelihood retry
         self.asr_text=''
-        kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+#         kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+        led1.on()
+        led2.on()
+        sleep(15)
+        led2.off()
+        led1.off()
         print("kiosk init done")
 
     def loadMenu(self):
@@ -885,8 +873,12 @@ class kiosk(object):
         if intent_message.topic == "machine/hotword/on":
             if nlu_payload['mqtt_msg'] == '1':
                 kiosk.mqtt.publish("hermes/hotword/toggleOn", json.dumps({"siteId": "default"}))
+                led1.on()
+                led2.on()
             else:
                 kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+                led1.off()
+                led2.off()
         elif intent_message.topic =='hermes/asr/textCaptured':
             self.likelihood = nlu_payload['likelihood']
             self.asr_text = nlu_payload['text']

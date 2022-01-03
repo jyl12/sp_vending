@@ -5,6 +5,7 @@ services:
     ports:
       - "1883:1883"
       - "9001:9001"
+    restart: unless-stopped
     volumes:
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
   rhasspy:
@@ -19,6 +20,11 @@ services:
       - /dev/snd:/dev/snd
   rhasspy-python:
     build: rhasspy-python
+    restart: unless-stopped
     environment:
       - MQTT_BROKER=mosquitto
-      - KIOSK_API=https://bfcd4d26-ec62-4d24-ac89-c8ea1b048bb9.mock.pstmn.io
+      - KIOSK_API=http://192.168.0.164:8000 # https://bfcd4d26-ec62-4d24-ac89-c8ea1b048bb9.mock.pstmn.io #
+    volumes:
+      - ./rhasspy-python:/app
+    devices:
+      - /dev/gpiomem:/dev/gpiomem
