@@ -14,10 +14,12 @@ import time
 import random
 import querymodel
 # os.environ['GPIOZERO_PIN_FACTORY'] = os.environ.get('GPIOZERO_PIN_FACTORY', 'mock')
+from gpiozero.pins.native import NativeFactory
 from gpiozero import LED
 from time import sleep
-led1=LED(21) #gpio21, voice listening indicator
-led2=LED(26) #gpio26, voice listening indicator duplicate
+factory = NativeFactory()
+led1=LED(21,pin_factory=factory) #gpio21, voice listening indicator
+led2=LED(26,pin_factory=factory) #gpio26, voice listening indicator duplicate
 led2.off()
 led1.off()
 
