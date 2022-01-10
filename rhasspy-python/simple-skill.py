@@ -584,7 +584,7 @@ class order (object):
         elif self.state == 8:
             self.lastDialogue += ""
             kiosk.mqtt.publish("hermes/dialogueManager/startSession", json.dumps({"init":{"type": "notification", "text": self.lastDialogue}, "siteId": intent_message["siteId"]}))
-#             kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+            kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
             led1.off()
             led2.off()
         elif self.state == 9:
@@ -626,7 +626,7 @@ class order (object):
 #                 pass
             kiosk.mqtt.publish("hermes/dialogueManager/startSession", json.dumps({"init":{"type": "notification", "text": self.lastDialogue}, "siteId": intent_message["siteId"]}))
             self.orderCompleted()
-#             kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+            kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
             led1.off()
             led2.off()
             print("----------")
@@ -687,7 +687,7 @@ class kiosk(object):
         self.attempt = 0 #for likelihood retry
         self.likelihood = 0 #for likelihood retry
         self.asr_text=''
-#         kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
+        kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
         led1.on()
         led2.on()
         sleep(3)
