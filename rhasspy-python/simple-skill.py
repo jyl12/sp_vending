@@ -484,6 +484,10 @@ class order (object):
                 dialogue = self.repeatLastOrder()
             else:
                 self.state = 0
+                socket.send_multipart([zmq_config['inbound_topic'].encode(),
+                                       json.dumps('search').encode(),
+                                       json.dumps(['cancel']).encode()])
+                self.resp = result_collector()
                 if self.order == {}:
                     dialogue = " Please specify your items and quantity."
                 else:
@@ -686,7 +690,7 @@ class kiosk(object):
 #         kiosk.mqtt.publish("hermes/hotword/toggleOff", json.dumps({"siteId": "default"}))
         led1.on()
         led2.on()
-        sleep(15)
+        sleep(3)
         led2.off()
         led1.off()
         print("kiosk init done")

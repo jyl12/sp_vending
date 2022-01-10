@@ -14,16 +14,21 @@ services:
     ports:
       - "12101:12101"
     restart: unless-stopped
+    healthcheck:
+      test: "exit 0"
     volumes:
       - ./rhasspy/profiles:/profiles
     devices:
       - /dev/snd:/dev/snd
   rhasspy-python:
     build: rhasspy-python
+    depends_on:
+      rhasspy:
+        condition: service_healthy
     restart: unless-stopped
     environment:
       - MQTT_BROKER=mosquitto
-      - KIOSK_API=http://192.168.0.164:8000 # https://bfcd4d26-ec62-4d24-ac89-c8ea1b048bb9.mock.pstmn.io #
+      - KIOSK_API=http://129.169.51.34:8000 # https://bfcd4d26-ec62-4d24-ac89-c8ea1b048bb9.mock.pstmn.io #
     volumes:
       - ./rhasspy-python:/app
     devices:
